@@ -1,0 +1,40 @@
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany} from "typeorm";
+import { User } from "./User";
+import { Venue } from "./Venue";
+import { VendorComment } from "./VendorComment";
+
+@Entity()
+export class BookingApplication {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    eventName!: string;
+    
+    @Column()
+    guestCount!: number;
+
+    @Column()
+    eventDate!: string;
+
+    @Column()
+    startTime!: string;
+
+    @Column()
+    endTime!: string;
+
+    @Column({
+        type: "datetime",
+        default: () => "GETDATE()"
+    })
+    createdAt!: Date;
+
+    @ManyToOne(() => User, user => user.applications)
+    hirer!: User;
+
+    @ManyToOne(() => Venue, venue => venue.applications)
+    venue!: Venue;
+
+    @OneToMany(() => VendorComment, comment => comment.application)
+    comments!: VendorComment[];
+}
