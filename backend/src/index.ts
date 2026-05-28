@@ -1,20 +1,74 @@
 import express from "express";
 import cors from "cors";
-
+import vendorRoutes from "./routes/VendorRoutes";
+import {User} from "./entities/User";
+import {Venue} from "./entities/Venue";
+import {BookingApplication} from "./entities/BookingApplication";
 import {AppDataSource} from "./data-source";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/vendor", vendorRoutes);
 
 app.get("/", (req, res) => {
     res.send("Venue Vendor Backend Running");
 });
 
-AppDataSource.initialize().then(() => {
+AppDataSource.initialize().then(async () => {
     console.log("Database Connected");
+    const userRepository = AppDataSource.getRepository(User);
+    const venueRepository = AppDataSource.getRepository(Venue);
+    const bookingRepository = AppDataSource.getRepository(BookingApplication);  
 
+    const existingUsers = await userRepository.find();
+    if(existingUsers.length === 0) {
+        const vendor = userRepository.create({
+            firstName: "John",
+            lastName: "Vendor",
+            email: "v@test.com",
+            password: "password",
+            role: "vendor",
+        });
+
+        await userRepository.save(vendor);
+
+        const hirer = userRepository.create({
+            firstName: "Jane",
+            lastName: "Hirer",
+            email: "J@test.com",
+            password: "123456",
+            role: "hirer"
+        });
+
+        await userRepository.save(hirer);
+
+        const venue = venueRepository.create({
+            name: "Grand Ballroom",
+            Location: "Melbourne",
+            capacity: 300,
+            price: 5000,
+            imageUrl: "ballroom.jpg",
+            description: "Large event venue",
+            suitabilityKeywords: "weddings, conferences",
+            vendor
+        });
+        await venueRepository.save(venue);
+
+        const application = bookingRepository.create({
+            eventName: "Smith-Jones Wedding",
+            guestCount: 150,
+            eventDate: "2026-12-15",
+            startTime: "17:00",
+            endTime: "23:00",
+            hirer,
+            venue
+        });
+        await bookingRepository.save(application);
+        
+        console.log("Sample data created");
+    };
     app.listen(3001, () => {
         console.log("Server running on 3001");
     });
