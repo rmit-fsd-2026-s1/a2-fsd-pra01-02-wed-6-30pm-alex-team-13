@@ -18,7 +18,8 @@ router.get("/:vendorID/applications",
             const applications = await bookingRepository.find({
                 relations: {
                     hirer: true,
-                    venue: true
+                    venue: true,
+                    comments: true
                 },
                 where: {
                     venue: {
