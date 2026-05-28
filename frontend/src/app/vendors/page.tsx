@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
-import { initialiseStorage, getApplicants, saveApplicants,initialiseBlockedPeriods, getBlockedPeriods, saveBlockedPeriods} from "@/utils/localStorage";
+import { getApplicants } from "@/utils/localStorage";
 import Insights from "@/components/Insights";
 
 export default function VendorsPage(){
@@ -20,20 +20,71 @@ export default function VendorsPage(){
     const [blockEnd, setBlockEnd] = useState("");
     const [blockReason, setBlockReason] = useState("");
 
-    useEffect(()=> {
-        initialiseStorage();
-        initialiseBlockedPeriods();
+    useEffect(() => {
 
-        const storedApplicants = getApplicants();
-        const storedBlockedPeriods = getBlockedPeriods();
+        const loadApplicants = async () => {
 
-        setApplicants(storedApplicants);
-        setBlockedPeriods(storedBlockedPeriods);
+            const data = await getApplicants();
 
-        if(storedApplicants.length > 0){
-            setSelectedApplicant(storedApplicants[0]);
-            setComment(storedApplicants[0].comments || "");
-        }
+            const mappedApplicants: Applicant[] = data.map((application: any) => ({
+                id: String(application.id),
+
+                name: `${application.hirer?.firstName || ""} ${application.hirer?.lastName || ""}`,
+
+                email: application.hirer?.email || "",
+
+                phone: application.hirer?.phone || "",
+
+                eventName: application.eventName || "",
+
+                eventType: "Wedding",
+
+                guests: application.guestCount || 0,
+
+                eventDate: application.eventDate || "",
+
+                durationHours: application.endTime && application.startTime
+                    ? (new Date(`1970-01-01T${application.endTime}:00`).getTime() - new Date(`1970-01-01T${application.startTime}:00`).getTime()) / (1000 * 60 * 60)
+                    : 0,
+
+                venueOfChoice: application.venue?.name || "Unknown Venue",
+
+                suitability: "High",
+
+                reputationScore: application.reputationScore ?? 0,
+
+                compliantDocs: {
+                    License: true,
+                    liabilityInsuarance: true,
+                    businessRegistration: true
+                },
+
+                hireHistory: [],
+
+                comments: application.comments?.[0]?.comment || "",
+
+                selected:
+                    application.status === "Approved",
+
+                approved:
+                    application.status === "Approved",
+
+                status:
+                    application.status || "Pending",
+
+                timesChosen: 0
+            }));
+
+            setApplicants(mappedApplicants);
+
+            if(mappedApplicants.length > 0){
+                setSelectedApplicant(mappedApplicants[0]);
+                setComment(mappedApplicants[0].comments || "");
+            }
+        };
+
+        loadApplicants();
+
     }, []);
 
     const handleSelectedApplicant = (applicant : Applicant) => {
@@ -51,7 +102,6 @@ export default function VendorsPage(){
         );
 
         setApplicants(updatedApplicants);
-        saveApplicants(updatedApplicants);
 
         const updatedSelectedApplicant = updatedApplicants.find(
             (applicant) => applicant.id === selectedApplicant.id
@@ -72,7 +122,7 @@ export default function VendorsPage(){
         );
 
         setApplicants(updatedApplicants);
-        saveApplicants(updatedApplicants);
+       
 
         const updatedSelectedApplicant = updatedApplicants.find(
             (applicant) => applicant.id === selectedApplicant.id
@@ -98,7 +148,7 @@ export default function VendorsPage(){
         );
 
         setApplicants(updatedApplicants);
-        saveApplicants(updatedApplicants);
+        
 
         const updatedSelectedApplicant = updatedApplicants.find(
         (applicant) => applicant.id === selectedApplicant.id
@@ -161,7 +211,7 @@ export default function VendorsPage(){
         const updatedBlockedPeriods = [...blockedPeriods, newBlockedPeriod];
 
         setBlockedPeriods(updatedBlockedPeriods);
-        saveBlockedPeriods(updatedBlockedPeriods);
+        
 
         setBlockStart("");
         setBlockEnd("");

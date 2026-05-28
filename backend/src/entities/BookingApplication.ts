@@ -23,6 +23,12 @@ export class BookingApplication {
     @Column()
     endTime!: string;
 
+    @Column({ default: "Pending" })
+    status!: string;
+
+    @Column({ default: 0 })
+    reputationScore!: number;
+
     @Column({
         type: "datetime",
         default: () => "GETDATE()"

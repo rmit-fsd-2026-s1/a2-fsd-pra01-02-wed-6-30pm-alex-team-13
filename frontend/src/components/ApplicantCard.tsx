@@ -29,7 +29,7 @@ export default function ApplicantCard({
           <p className="text-slate-700">
             Preferred Venue: {applicant.venueOfChoice}
           </p>
-          <p className="mt-2 font-medium">
+          <p className="mt-2 font-medium text-slate-700">
             Suitability:{" "}
             <span
               className={

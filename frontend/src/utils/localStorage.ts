@@ -37,16 +37,19 @@ export function initialiseStorage() {
     }
 }
 
-export function getApplicants(): Applicant[] {
-    if (!isClient) return [];
-
-    const rawData = localStorage.getItem(APPLICANT_DATA_KEY);
-    if (!rawData) return [];
-    
+export async function getApplicants() {
     try {
-        return JSON.parse(rawData);
+        const response = await fetch(
+            "http://localhost:3001/vendor/1/applications"
+        );
+
+        const data = await response.json();
+
+        return data;
+
     } catch (err) {
-        console.error("Error parsing applicant data:", err);
+        console.error("Error fetching applicants:", err);
+
         return [];
     }
 }

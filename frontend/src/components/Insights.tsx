@@ -14,9 +14,17 @@ export default function Insights({
     );
 
     const mostChosen = sortedByChosen[0];
-    let leastChosen = sortedByChosen[sortedByChosen.length - 1];;
-    if(sortedByChosen[sortedByChosen.length - 1].timesChosen === 0){
-        leastChosen = sortedByChosen[sortedByChosen.length - 2];
+
+    let leastChosen =
+        sortedByChosen[sortedByChosen.length - 1];
+
+    if(
+        sortedByChosen.length > 1 &&
+        sortedByChosen[sortedByChosen.length - 1]
+            .timesChosen === 0
+    ){
+        leastChosen =
+            sortedByChosen[sortedByChosen.length - 2];
     }
     const unselected = applicants.filter((applicant) => applicant.timesChosen === 0);
 
@@ -35,7 +43,7 @@ export default function Insights({
                         Most Chosen Applicant
                     </h4>
                     <p className="mt-3 text-slate-900 font-medium">
-                        {mostChosen.name}
+                        {mostChosen?.name || "N/A"}
                     </p>
                     <p className="text-slate-700">
                         Times chosen: {mostChosen.timesChosen}
@@ -47,7 +55,7 @@ export default function Insights({
                         Least Chosen Applicant
                     </h4>
                     <p className="mt-3 text-slate-900 font-medium">
-                        {leastChosen.name}
+                        {leastChosen?.name || "N/A"}
                     </p>
                     <p className="text-slate-700">
                         Times chosen: {leastChosen.timesChosen}

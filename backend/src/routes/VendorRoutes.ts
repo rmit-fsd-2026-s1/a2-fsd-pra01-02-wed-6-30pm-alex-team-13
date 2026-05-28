@@ -35,4 +35,41 @@ router.get("/:vendorID/applications",
     }
 );
 
+router.patch("/applications/:id/status", async (req, res) => {
+    try{
+        const applicationID = Number(req.params.id);
+        const { status } = req.body;
+
+        if(!["Pending", "Approved", "Rejected"].includes(status)){
+            return res.status(400).json({message: "Invalid status"});
+        }
+
+        const application = await bookingRepository.findOne({
+            where: { id: applicationID },
+            relations: {
+                hirer: true,
+                venue: true,
+                comments: true
+            },
+        });
+
+        if(!application){
+            return res.status(404).json({message: "Application not found"});
+        }
+
+        application.status = status;
+
+        if(status === "Approved"){
+            application.reputationScore += 1;
+        }
+
+        const savedApplication = await bookingRepository.save(application);
+
+        res.json(savedApplication);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
 export default router;

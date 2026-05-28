@@ -22,6 +22,11 @@ AppDataSource.initialize().then(async () => {
     const venueRepository = AppDataSource.getRepository(Venue);
     const bookingRepository = AppDataSource.getRepository(BookingApplication);  
 
+    await bookingRepository.update(
+        { id: 1 },
+        { reputationScore: 95 }
+    );
+    
     const existingUsers = await userRepository.find();
     if(existingUsers.length === 0) {
         const vendor = userRepository.create({
@@ -62,6 +67,8 @@ AppDataSource.initialize().then(async () => {
             eventDate: "2026-12-15",
             startTime: "17:00",
             endTime: "23:00",
+            status: "Pending",
+            reputationScore: 95,
             hirer,
             venue
         });
@@ -69,6 +76,7 @@ AppDataSource.initialize().then(async () => {
         
         console.log("Sample data created");
     };
+    
     app.listen(3001, () => {
         console.log("Server running on 3001");
     });
