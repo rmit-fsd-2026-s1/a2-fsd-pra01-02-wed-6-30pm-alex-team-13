@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
-import { getApplicants } from "@/utils/localStorage";
+import { getApplicants, updateApplicantStatus, saveComment } from "@/utils/localStorage";
 import Insights from "@/components/Insights";
 
 export default function VendorsPage(){
@@ -92,67 +92,97 @@ export default function VendorsPage(){
         setComment(applicant.comments || "");
     };
 
-    const handleSaveComment = () => {
+    const handleSaveComment = async () => {
         if(!selectedApplicant) return;
 
-        const updatedApplicants = applicants.map((applicant) =>
-            applicant.id === selectedApplicant.id?
-            {...applicant, comments: comment}
-            : applicant
-        );
+        const savedComment =
+            await saveComment(
+                selectedApplicant.id,
+                comment
+            );
+
+        if(!savedComment){
+            alert("Failed to save comment.");
+            return;
+        }
+
+        const updatedApplicants: Applicant[] =
+            applicants.map((applicant) =>
+                applicant.id === selectedApplicant.id
+                ? {
+                    ...applicant,
+                    comments: comment
+                }
+                : applicant
+            );
 
         setApplicants(updatedApplicants);
 
-        const updatedSelectedApplicant = updatedApplicants.find(
-            (applicant) => applicant.id === selectedApplicant.id
+        const updatedSelectedApplicant =
+            updatedApplicants.find(
+                (applicant) =>
+                    applicant.id === selectedApplicant.id
+            );
+
+        setSelectedApplicant(
+            updatedSelectedApplicant || null
         );
 
-        setSelectedApplicant(updatedSelectedApplicant || null);
-
-        alert("Comment Saved.");
+        alert("Comment saved.");
     };
 
-    const handleApprove = () => {
+    const handleApprove = async () => {
         if(!selectedApplicant) return;
 
-        const updatedApplicants: Applicant[] = applicants.map((applicant) =>
-            applicant.id === selectedApplicant.id
-            ? {...applicant, approved: true, selected: true, status: "Approved", timesChosen: applicant.timesChosen + 1,}
-            : applicant
+        const updatedApplication = await updateApplicantStatus(selectedApplicant.id, "Approved");
+
+        if(!updatedApplication){
+            alert("Failed to approve application.");
+            return;
+        }
+       
+
+        const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
+                ...applicant,
+                status: "Approved",
+                approved: true,
+                reputationScore: updatedApplication.reputationScore
+            } : applicant
         );
 
         setApplicants(updatedApplicants);
-       
 
-        const updatedSelectedApplicant = updatedApplicants.find(
-            (applicant) => applicant.id === selectedApplicant.id
-        );
+        const updatedSelectedApplicant = 
+            updatedApplicants.find((applicant) => applicant.id === selectedApplicant.id);
 
         setSelectedApplicant(updatedSelectedApplicant || null);
 
         alert("Application approved and booking confirmed");
     };
 
-    const handleRejectApplicant = () => {
+    const handleRejectApplicant = async () => {
         if (!selectedApplicant) return;
 
-        const updatedApplicants: Applicant[] = applicants.map((applicant) =>
-        applicant.id === selectedApplicant.id
-            ? {
+        const updatedApplication = await updateApplicantStatus(selectedApplicant.id, "Rejected");
+
+        if(!updatedApplication){
+            alert("Failed to reject application.");
+            return;
+        }
+       
+
+        const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
                 ...applicant,
-                approved: false,
-                selected: false,
                 status: "Rejected",
-            }
-            : applicant
+                approved: false,
+                selected: false
+            } : applicant
         );
 
         setApplicants(updatedApplicants);
-        
 
-        const updatedSelectedApplicant = updatedApplicants.find(
-        (applicant) => applicant.id === selectedApplicant.id
-        );
+        const updatedSelectedApplicant = 
+            updatedApplicants.find((applicant) => applicant.id === selectedApplicant.id);
 
         setSelectedApplicant(updatedSelectedApplicant || null);
 

@@ -54,6 +54,53 @@ export async function getApplicants() {
     }
 }
 
+export async function updateApplicantStatus(id: string, status: "Approved" | "Rejected") {
+    try{
+        const response = await fetch(
+            `http://localhost:3001/vendor/1/applications/${id}/status`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status }),
+            }
+        );
+
+        return await response.json();
+    } catch (error){
+        console.log(error);
+        return null;
+    }
+}
+
+export async function saveComment(
+    applicationId: string,
+    comment: string
+) {
+    try {
+
+        const response = await fetch(
+            `http://localhost:3001/vendor/1/applications/${applicationId}/comments`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ comment }),
+            }
+        );
+
+        return await response.json();
+
+    } catch(error){
+
+        console.log(error);
+
+        return null;
+    }
+}
+
 export function saveApplicants(applicants: Applicant[]) {
     if (!isClient) return;
     localStorage.setItem(APPLICANT_DATA_KEY, JSON.stringify(applicants));
