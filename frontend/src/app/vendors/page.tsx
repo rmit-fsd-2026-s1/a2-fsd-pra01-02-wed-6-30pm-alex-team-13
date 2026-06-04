@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
-import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot } from "@/utils/localStorage";
+import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot, getBlockedTimeSlots, deleteBlockedTimeSlot } from "@/utils/api";
 import Insights from "@/components/Insights";
 
 export default function VendorsPage(){
@@ -77,6 +77,18 @@ export default function VendorsPage(){
 
             setApplicants(mappedApplicants);
 
+            const blockedSlots = await getBlockedTimeSlots(1);
+
+            const mappedBlockedSlots: BlockedPeriod[] = blockedSlots.map((slot: any) => ({
+                id: String(slot.id),
+                venueName: slot.venue?.name || "Unknown",
+                startDateTime: slot.startDateTime,
+                endDateTime: slot.endDateTime,
+                reason: slot.reason,
+            }));
+
+            setBlockedPeriods(mappedBlockedSlots);
+
             if(mappedApplicants.length > 0){
                 setSelectedApplicant(mappedApplicants[0]);
                 setComment(mappedApplicants[0].comments || "");
@@ -85,6 +97,20 @@ export default function VendorsPage(){
 
         loadApplicants();
 
+    }, []);
+
+    useEffect(() => {
+        const role = localStorage.getItem("role");
+
+        if(role !== "vendor"){
+            alert("Only vendors can access this page.");
+            window.location.href = "/signin";
+        }
+    }, []);
+
+    //leave afterauthentication is implemented
+    useEffect(() => {
+        localStorage.setItem("role", "vendor");
     }, []);
 
     const handleSelectedApplicant = (applicant : Applicant) => {
@@ -214,15 +240,6 @@ export default function VendorsPage(){
             alert("Please enter a reason for blocking.");
             return;
         }
-
-        const savedBlockedSlot = await saveBlockedTimeSlot(
-            1, blockStart, blockEnd, blockReason
-        );
-
-        if(!savedBlockedSlot){
-            alert("Failed to block the venue.");
-            return;
-        }
         
         const hasOverLap = blockedPeriods.some((period) => {
             if(period.venueName !== selectedApplicant.venueOfChoice) return false;
@@ -237,6 +254,15 @@ export default function VendorsPage(){
 
         if(hasOverLap){
             alert("This blocked period overlaps with an existing blocked period for the same venue.");
+            return;
+        }
+
+        const savedBlockedSlot = await saveBlockedTimeSlot(
+            1, blockStart, blockEnd, blockReason
+        );
+
+        if(!savedBlockedSlot){
+            alert("Failed to block the venue.");
             return;
         }
         
@@ -258,6 +284,22 @@ export default function VendorsPage(){
 
         alert("Venue blocked.");
     }
+
+    const handleDeleteBlockedPeriod = async (blockedPeriodId: string) => {
+        const deleted = await deleteBlockedTimeSlot(1, Number(blockedPeriodId));
+
+        if(!deleted){
+            alert("Failed to unblock period.");
+            return;
+        }
+
+        const updateBlockedPeriods = blockedPeriods.filter(
+            (period) => period.id !== blockedPeriodId
+        );
+        setBlockedPeriods(updateBlockedPeriods);
+        alert("Blocked period removed.");
+    }
+
     const getStatusBadge = (status: Applicant["status"]) => {
         if(status === "Approved"){
             return (<span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
@@ -345,6 +387,7 @@ export default function VendorsPage(){
                         setBlockReason={setBlockReason}
                         onBlockVenue={handleBlockedVenue}
                         blockedPeriods={blockedPeriods}
+                        onDeleteBlockedPeriod={handleDeleteBlockedPeriod}
                         />
                     ) : (
                         <p className="text-slate-700">Select an applicant to see details.</p>

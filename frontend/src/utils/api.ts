@@ -140,3 +140,28 @@ export async function saveBlockedTimeSlot(
         return null;
     }
 }
+
+export async function getBlockedTimeSlots(venueId: number) {
+    try{
+        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots`);
+
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+}
+
+export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: number) {
+    try{
+        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots/${blockedSlotId}`,
+            {
+                method: "DELETE",
+            }
+        );
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}

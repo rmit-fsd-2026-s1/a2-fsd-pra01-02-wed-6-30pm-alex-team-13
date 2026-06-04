@@ -14,6 +14,10 @@ const blockedTimeSlotRepository = AppDataSource.getRepository(BlockedTimeSlot);
 const venueRepository = AppDataSource.getRepository(Venue);
 
 const bookingRepository = AppDataSource.getRepository(BookingApplication);
+router.get("/test", (req, res) => {
+    res.json({ message: "vendor routes working" });
+});
+
 router.get("/:vendorID/applications",
     async (req, res) => {
         try{
@@ -172,6 +176,71 @@ router.post("/:vendorID/venues/:venueID/blocked-timeslots", async (req, res) => 
 
         await blockedTimeSlotRepository.save(blockedTimeSlot);
         res.status(201).json(blockedTimeSlot);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
+
+router.get("/:vendorID/venues/:venueID/blocked-timeslots", async (req, res) => {
+    try{
+        const vendorId = Number(req.params.vendorID);
+        const venueId = Number(req.params.venueID);
+
+        const blockedSlots = await blockedTimeSlotRepository.find({
+            where: {
+                venue: {
+                    id: venueId,
+                    vendor: {
+                        id: vendorId
+                    }
+                }
+            },
+            relations: {
+                venue: {
+                    vendor: true
+                }
+            }
+        });
+
+        res.json(blockedSlots);
+    }catch(error){
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
+
+router.delete("/:vendorID/venues/:venueID/blocked-timeslots/:id", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+        const venueID = Number(req.params.venueID);
+        const blockedTimeSlotID = Number(req.params.id);
+
+        const blockedSlot = await blockedTimeSlotRepository.findOne({
+            where: {
+                id: blockedTimeSlotID,
+                venue: {
+                    id: venueID,
+                    vendor: {
+                        id: vendorID
+                    }
+                }
+            },
+            relations: {
+                venue: {
+                    vendor: true
+                }
+            }
+        });
+
+        if(!blockedSlot){
+            return res.status(404).json({
+                message: "Blocked time slot not found"
+            });
+        }
+
+        await blockedTimeSlotRepository.remove(blockedSlot);
+        res.json({message: "Blocked period deleted"});
     } catch (error) {
         console.log(error);
         res.status(500).json({message: "Server error"});

@@ -16,6 +16,10 @@ app.get("/", (req, res) => {
     res.send("Venue Vendor Backend Running");
 });
 
+app.get("/debug", (req, res) => {
+  res.json({ message: "index route working" });
+});
+
 AppDataSource.initialize().then(async () => {
     console.log("Database Connected");
     const userRepository = AppDataSource.getRepository(User);

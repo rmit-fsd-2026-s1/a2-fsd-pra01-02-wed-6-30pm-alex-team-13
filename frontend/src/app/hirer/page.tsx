@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { seedVenues } from "@/data/seedVenues";
 import { Applicant } from "@/types";
 
-import { getApplicants, saveApplicants, initialiseStorage } from "@/utils/localStorage";
+import { getApplicants, saveApplicants, initialiseStorage } from "@/utils/api";
 
 export default function HirerPage() {
     const router = useRouter();

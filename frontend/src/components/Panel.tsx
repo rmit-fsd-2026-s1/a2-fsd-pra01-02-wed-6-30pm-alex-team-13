@@ -2,7 +2,7 @@ import { Applicant, BlockedPeriod } from "@/types";
 
 export default function Panel({
     applicant,comment,setComment,onSaveComment,onApprove,onReject,
-    blockStart, setBlockStart, blockEnd, setBlockEnd, blockReason, setBlockReason, onBlockVenue, blockedPeriods,
+    blockStart, setBlockStart, blockEnd, setBlockEnd, blockReason, setBlockReason, onBlockVenue, blockedPeriods, onDeleteBlockedPeriod,
 }: {
     applicant: Applicant;
     comment: string;
@@ -18,6 +18,7 @@ export default function Panel({
     setBlockReason: (value: string) => void;
     onBlockVenue: () => void;
     blockedPeriods: BlockedPeriod[];
+    onDeleteBlockedPeriod: (blockedPeriodId: string) => void;
 }) {
     return(
         <div className="rounded-xl border border-slate-200 bg-white p-6">
@@ -224,14 +225,33 @@ export default function Panel({
                             className="rounded-md border border-slate-200 bg-slate-50 p-4"
                         >
                             <p className="text-slate-700">
-                            Start: {period.startDateTime}
+                            Start:{" "}
+                            {new Date(period.startDateTime).toLocaleString("en-AU", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                            })}
                             </p>
+
                             <p className="text-slate-700">
-                            End: {period.endDateTime}
+                            End:{" "}
+                            {new Date(period.endDateTime).toLocaleString("en-AU", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                            })}
                             </p>
                             <p className="text-slate-700">
                             Reason: {period.reason}
                             </p>
+                            <button onClick={() => onDeleteBlockedPeriod(period.id)}
+                                className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
+                                    Unblock
+                                </button>
                         </div>
                         ))
                     ) : (
