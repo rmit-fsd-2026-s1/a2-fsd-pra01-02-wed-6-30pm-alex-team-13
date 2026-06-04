@@ -119,3 +119,24 @@ export function saveBlockedPeriods(periods: BlockedPeriod[]) {
     localStorage.setItem(BLOCKED_DATES_KEY, JSON.stringify(periods));
     console.log("Blocked periods saved.");
 }
+
+export async function saveBlockedTimeSlot(
+    venueId: number,
+    startDateTime: string,
+    endDateTime: string,
+    reason: string
+){
+    try{
+        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ startDateTime, endDateTime, reason }),
+        });
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}

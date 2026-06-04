@@ -33,13 +33,16 @@ export default function HirerPage() {
     const [pastApplicants, setPastApplicants] = useState<Applicant[]>([]);
 
     useEffect(() => {
-        initialiseStorage();
-        
-        const data = getApplicants();
-        console.log("Loaded existing applicants:", data.length);
-        setPastApplicants(data);
-    }, []);
+    const loadApplicants = async () => {
+        const data = await getApplicants();
 
+        console.log("Loaded existing applicants:", data.length);
+
+        setPastApplicants(data);
+    };
+
+    loadApplicants();
+}, []);
     const filteredVenues = seedVenues.filter((item) => {
     if (!searchQuery) return true;
 

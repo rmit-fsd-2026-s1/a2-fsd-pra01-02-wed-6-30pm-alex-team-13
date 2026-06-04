@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
-import { getApplicants, updateApplicantStatus, saveComment } from "@/utils/localStorage";
+import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot } from "@/utils/localStorage";
 import Insights from "@/components/Insights";
 
 export default function VendorsPage(){
@@ -189,7 +189,7 @@ export default function VendorsPage(){
         alert("Application rejected.");
     };
 
-    const handleBlockedVenue = () => {
+    const handleBlockedVenue = async () => {
         if(!selectedApplicant) return;
 
 
@@ -212,6 +212,15 @@ export default function VendorsPage(){
         // Reason for blocking the venue must not be empty.
         if(!blockReason.trim()){
             alert("Please enter a reason for blocking.");
+            return;
+        }
+
+        const savedBlockedSlot = await saveBlockedTimeSlot(
+            1, blockStart, blockEnd, blockReason
+        );
+
+        if(!savedBlockedSlot){
+            alert("Failed to block the venue.");
             return;
         }
         

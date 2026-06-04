@@ -3,11 +3,15 @@ import {AppDataSource} from '../data-source';
 import {BookingApplication} from '../entities/BookingApplication';
 import {User} from '../entities/User';
 import {VendorComment} from '../entities/VendorComment';
+import {BlockedTimeSlot} from '../entities/BlockedTimeSlot';
+import {Venue} from '../entities/Venue';
 
 const router = Router();
 
 const commentRepository = AppDataSource.getRepository(VendorComment);
 const userRepository = AppDataSource.getRepository(User);
+const blockedTimeSlotRepository = AppDataSource.getRepository(BlockedTimeSlot);
+const venueRepository = AppDataSource.getRepository(Venue);
 
 const bookingRepository = AppDataSource.getRepository(BookingApplication);
 router.get("/:vendorID/applications",
@@ -121,4 +125,57 @@ router.post("/:vendorID/applications/:id/comments", async (req, res) => {
         res.status(500).json({message: "Server error"});
     }
 });
+
+router.post("/:vendorID/venues/:venueID/blocked-timeslots", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+        const venueID = Number(req.params.venueID);
+
+        const { startDateTime, endDateTime, reason } = req.body;
+
+        if(!startDateTime || !endDateTime){
+            return res.status(400).json({message: "Start and end date time are required"});
+        }
+
+        if(
+            new Date(endDateTime) <= new Date(startDateTime)
+        ){
+            return res.status(400).json({message: "End date time must be after start date time"});
+        }
+
+        if(!reason.trim()){
+            return res.status(400).json({message: "Reason for blocking is required"});
+        }
+
+        const venue = await venueRepository.findOne({
+            where:{
+                id: venueID,
+                vendor: {
+                    id: vendorID
+                }
+            },
+            relations: {
+                vendor: true
+            }
+        });
+
+        if(!venue){
+            return res.status(404).json({message: "Venue not found."});
+        }
+
+        const blockedTimeSlot = blockedTimeSlotRepository.create({
+            startDateTime,
+            endDateTime,
+            reason,
+            venue
+        });
+
+        await blockedTimeSlotRepository.save(blockedTimeSlot);
+        res.status(201).json(blockedTimeSlot);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
+
 export default router;
