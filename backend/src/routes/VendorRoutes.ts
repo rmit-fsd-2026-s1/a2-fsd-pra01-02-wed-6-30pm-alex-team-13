@@ -247,4 +247,27 @@ router.delete("/:vendorID/venues/:venueID/blocked-timeslots/:id", async (req, re
     }
 });
 
+router.get("/:vendorID/venues", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+
+        const venues = await venueRepository.find({
+            where: {
+                vendor: {
+                    id: vendorID,
+                },
+            },
+            relations: {
+                vendor: true,
+            },
+        });
+
+        res.json(venues);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+    
+});
+
 export default router;

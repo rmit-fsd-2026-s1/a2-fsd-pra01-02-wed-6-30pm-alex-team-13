@@ -165,3 +165,8 @@ export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: numb
         return null;
     }
 }
+
+export async function getVendorVenues(){
+    const response = await fetch("http://localhost:3001/vendor/1/venues");
+    return await response.json();
+}

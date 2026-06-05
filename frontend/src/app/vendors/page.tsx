@@ -9,6 +9,7 @@ import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
 import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot, getBlockedTimeSlots, deleteBlockedTimeSlot } from "@/utils/api";
 import Insights from "@/components/Insights";
+import {getVendorVenues} from "@/utils/api";
 
 export default function VendorsPage(){
     const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -19,6 +20,7 @@ export default function VendorsPage(){
     const [blockStart, setBlockStart] = useState("");
     const [blockEnd, setBlockEnd] = useState("");
     const [blockReason, setBlockReason] = useState("");
+    const [venues, setVenues] = useState<any[]>([]);
 
     useEffect(() => {
 
@@ -76,6 +78,9 @@ export default function VendorsPage(){
             }));
 
             setApplicants(mappedApplicants);
+
+            const venueData = await getVendorVenues()
+            setVenues(venueData);
 
             const blockedSlots = await getBlockedTimeSlots(1);
 
@@ -338,8 +343,23 @@ export default function VendorsPage(){
                 <h2 className="text-3xl font-bold text-slate-900 text-white">Vendors Dashboard</h2>
                 <p className="mt-3 text-slate-700 text-white">Review applicants based on their event requirements and suitability.</p>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
+                <section className="section-glow p-8">
+                    <h3 className="text-2xl font-semibold text-slate-900 text-white mb-4">
+                        My Venues
+                    </h3>  
+
+                    {venues.map((venue) =>(
+                        <div key={venue.id} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
+                            <p className="font-bold">{venue.name}</p>
+                            <p>Location: {venue.location || venue.Location}</p>
+                            <p>Capacity: {venue.capacity}</p>
+                            <p>Price: ${venue.price}</p>
+                        </div>
+                    ))}  
+                </section>
+
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">  
+                
                 <section className="section-glow p-8">
                     <div className="mb-4 flex items-center justify-between gap-4"> 
                         <h3 className="text-2xl font-semibold text-slate-900 text-white mb-4">
@@ -365,7 +385,7 @@ export default function VendorsPage(){
                         ))}
                     </div>
                 </section>
-                        
+
                 <section className="section-glow p-8">
                     <h3 className="text-2xl font-semibold text-white mb-4">
                         Applicant Details
@@ -393,6 +413,7 @@ export default function VendorsPage(){
                         <p className="text-slate-700">Select an applicant to see details.</p>
                     )}
                 </section>
+                
                 </div>
 
                 <Insights applicants={applicants} />

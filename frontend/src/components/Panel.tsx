@@ -20,6 +20,10 @@ export default function Panel({
     blockedPeriods: BlockedPeriod[];
     onDeleteBlockedPeriod: (blockedPeriodId: string) => void;
 }) {
+    const compliantScore = (
+        [applicant.compliantDocs.License, applicant.compliantDocs.liabilityInsuarance, applicant.compliantDocs.businessRegistration].filter(Boolean).length / 3
+    ) * 100;
+
     return(
         <div className="rounded-xl border border-slate-200 bg-white p-6">
             <div className="flex items-center justify-between gap-4">
@@ -79,7 +83,11 @@ export default function Panel({
                 <h5 className="text-xl font-semibold text-slate-900">
                 Compliant Documents
                 </h5>
-
+                <div className="mt-3">
+                    <p className="font-semibold text-slate-700">
+                        Compliance Score: {compliantScore}%
+                    </p>
+                </div>
                 <div className="mt-3 space-y-2 text-slate-700">
                 <p>
                     Driver&apos;s License:{" "}

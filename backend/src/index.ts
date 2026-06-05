@@ -80,6 +80,46 @@ AppDataSource.initialize().then(async () => {
         
         console.log("Sample data created");
     };
+
+    const jackExists = await userRepository.findOne({
+        where: {
+            email: "jh@test.com"
+        }
+    });
+
+    if (!jackExists) {
+        const jack = userRepository.create({
+            firstName: "Jack",
+            lastName: "Hirer",
+            email: "jh@test.com",
+            password: "123456",
+            role: "hirer"
+        });
+
+        await userRepository.save(jack);
+
+        const grandBallroom = await venueRepository.findOne({
+            where: {
+                name: "Grand Ballroom"
+            }
+        });
+
+        if (grandBallroom) {
+            const application2 = bookingRepository.create({
+                eventName: "Jones Wedding",
+                guestCount: 150,
+                eventDate: "2026-10-15",
+                startTime: "17:00",
+                endTime: "23:00",
+                status: "Pending",
+                reputationScore: 90,
+                hirer: jack,
+                venue: grandBallroom
+            });
+
+            await bookingRepository.save(application2);
+        }
+    }
     
     app.listen(3001, () => {
         console.log("Server running on 3001");
