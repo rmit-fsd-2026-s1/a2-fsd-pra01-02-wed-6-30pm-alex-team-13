@@ -170,3 +170,35 @@ export async function getVendorVenues(){
     const response = await fetch("http://localhost:3001/vendor/1/venues");
     return await response.json();
 }
+
+export async function createVenue(venueData: any){
+    const response = await fetch("http://localhost:3001/vendor/1/venues", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(venueData),
+    });
+
+    return await response.json();
+}
+
+export async function updateVenue(venueId: number, venueData: any){
+    const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(venueData),
+    });
+
+    return await response.json();
+}
+
+export async function deleteVenue(venueId: number){
+    const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}`, {
+        method: "DELETE",
+    });
+
+    return await response.json();
+}

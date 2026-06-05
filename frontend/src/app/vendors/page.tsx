@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
-import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot, getBlockedTimeSlots, deleteBlockedTimeSlot } from "@/utils/api";
+import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot, getBlockedTimeSlots, deleteBlockedTimeSlot, createVenue, updateVenue, deleteVenue } from "@/utils/api";
 import Insights from "@/components/Insights";
 import {getVendorVenues} from "@/utils/api";
 
@@ -21,6 +21,17 @@ export default function VendorsPage(){
     const [blockEnd, setBlockEnd] = useState("");
     const [blockReason, setBlockReason] = useState("");
     const [venues, setVenues] = useState<any[]>([]);
+    const [venueForm, setVenueForm] = useState({
+        name: "",
+        Location: "",
+        capacity: 0,
+        price: 0,
+        imageUrl: "",
+        description: "",
+        suitabilityKeywords: "",
+    });
+
+    const [editingVenueId, setEditingVenueId] = useState<number | null>(null);
 
     useEffect(() => {
 
@@ -305,6 +316,73 @@ export default function VendorsPage(){
         alert("Blocked period removed.");
     }
 
+    const handleSaveVenue = async () => {
+        if(!venueForm.name || !venueForm.Location || !venueForm.capacity || !venueForm.price || !venueForm.description){
+            alert("Please fill in all required fields.");
+            return;
+        }
+
+        const venueData = {
+            ...venueForm,
+            capacity: Number(venueForm.capacity),
+            price: Number(venueForm.price),
+        };
+
+        if(editingVenueId){
+            const updatedVenue = await updateVenue(editingVenueId, venueData);
+
+            const updatedVenues = venues.map((venue) => 
+                venue.id === editingVenueId ? updatedVenue : venue);
+
+            setVenues(updatedVenues);
+            alert("Venue updated.");
+        }else{
+            const newVenue = await createVenue(venueData);
+
+            setVenues([...venues, newVenue]);
+            alert("Venue created.");
+        }
+
+        setVenueForm({
+            name: "",
+            Location: "",
+            capacity: 0,
+            price: 0,
+            imageUrl: "",
+            description: "",
+            suitabilityKeywords: "",
+        });
+
+        setEditingVenueId(null);
+    }
+
+    const handleDeleteVenue = async (venueId: number) => {
+        const confirmed = window.confirm("Are you sure you want to delete this venue?");
+
+        if(!confirmed) return;
+
+        await deleteVenue(venueId);
+
+        const updatedVenues = venues.filter((venue) => venue.id !== venueId);
+
+        setVenues(updatedVenues);
+
+        alert("Venue deleted.");
+    };
+
+    const handleEditVenue = (venue: any) => {
+        setEditingVenueId(venue.id);
+        setVenueForm({
+            name: venue.name || "",
+            Location: venue.Location || "",
+            capacity: venue.capacity|| 0,
+            price: venue.price || 0,
+            imageUrl: venue.imageUrl || "",
+            description: venue.description || "",
+            suitabilityKeywords: venue.suitabilityKeywords || "",
+        });
+    }
+
     const getStatusBadge = (status: Applicant["status"]) => {
         if(status === "Approved"){
             return (<span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
@@ -351,11 +429,101 @@ export default function VendorsPage(){
                     {venues.map((venue) =>(
                         <div key={venue.id} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
                             <p className="font-bold">{venue.name}</p>
-                            <p>Location: {venue.location || venue.Location}</p>
+                            <p>Location: {venue.Location }</p>
                             <p>Capacity: {venue.capacity}</p>
                             <p>Price: ${venue.price}</p>
+                            <div className="mt-3 flex gap-3">
+                            <button
+                                onClick={() => handleEditVenue(venue)}
+                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                onClick={() => handleDeleteVenue(venue.id)}
+                                className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                            >
+                                Delete
+                            </button>
                         </div>
-                    ))}  
+                        </div>
+                    ))}
+
+                    <div className="mt-6 rounded-lg bg-white p-4 text-slate-800">
+                        <h4 className="text-xl font-bold mb-4">
+                            {editingVenueId ? "Edit Venue" : "Add New Venue"}
+                        </h4>   
+
+                        <div className="grid gap-3">
+                            <input
+                                type="text"
+                                placeholder="Venue name"
+                                value={venueForm.name}
+                                onChange={(e) => setVenueForm({...venueForm, name: e.target.value})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+
+                            <input
+                                type="text"
+                                placeholder="Location"
+                                value={venueForm.Location}
+                                onChange={(e) => setVenueForm({...venueForm, Location: e.target.value})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+
+                            <label>
+                                Capacity
+                            <input
+                                type="number"
+                                placeholder="Capacity"
+                                value={venueForm.capacity}
+                                onChange={(e) => setVenueForm({...venueForm, capacity: Number(e.target.value),})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+                            </label>
+
+                            <label>
+                                Price   $
+                            <input
+                                type="number"
+                                placeholder="Price"
+                                value={venueForm.price}
+                                onChange={(e) => setVenueForm({...venueForm, price: Number(e.target.value),})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Image URL"
+                                value={venueForm.imageUrl}
+                                onChange={(e) => setVenueForm({...venueForm, imageUrl: e.target.value})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+
+                            <textarea
+                                placeholder="Description"
+                                value={venueForm.description}
+                                onChange={(e) => setVenueForm({...venueForm, description: e.target.value})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+
+                            <input
+                                type="text"
+                                placeholder="Suitability keywords"
+                                value={venueForm.suitabilityKeywords}
+                                onChange={(e) => setVenueForm({...venueForm, suitabilityKeywords: e.target.value})}
+                                className="rounded-md border border-slate-300 p-2"
+                            />
+
+                            <button
+                                onClick={handleSaveVenue}
+                                className="w-fit rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
+                            >
+                                {editingVenueId ? "Update Venue" : "Create Venue"}
+                            </button>
+                        </div> 
+                    </div>  
                 </section>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">  
