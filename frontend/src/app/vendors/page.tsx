@@ -8,8 +8,13 @@ import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
 import { getApplicants, updateApplicantStatus, saveComment, saveBlockedTimeSlot, getBlockedTimeSlots, deleteBlockedTimeSlot, createVenue, updateVenue, deleteVenue } from "@/utils/api";
-import Insights from "@/components/Insights";
+
 import {getVendorVenues} from "@/utils/api";
+import dynamic from "next/dynamic";
+
+const Insights = dynamic(() => import("@/components/Insights"), {
+    ssr: false,
+});
 
 export default function VendorsPage(){
     const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -584,7 +589,7 @@ export default function VendorsPage(){
                 
                 </div>
 
-                <Insights applicants={applicants} />
+                 <Insights applicants={applicants} /> 
             </main>
 
             <Footer />

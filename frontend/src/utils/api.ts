@@ -7,6 +7,14 @@ const BLOCKED_DATES_KEY = "venue_vendors_blocked";
 
 const isClient = typeof window !== "undefined";
 
+const API_BASE_URL = "http://localhost:3001";
+
+function getVendorId(){
+    if (typeof window === "undefined") return "1";
+
+    return localStorage.getItem("userId") || "1";
+}
+
 export function initialiseApplicants() {
     initialiseStorage();
 }
@@ -40,7 +48,7 @@ export function initialiseStorage() {
 export async function getApplicants() {
     try {
         const response = await fetch(
-            "http://localhost:3001/vendor/1/applications"
+            `${API_BASE_URL}/vendor/${getVendorId()}/applications`
         );
 
         const data = await response.json();
@@ -57,7 +65,7 @@ export async function getApplicants() {
 export async function updateApplicantStatus(id: string, status: "Approved" | "Rejected") {
     try{
         const response = await fetch(
-            `http://localhost:3001/vendor/1/applications/${id}/status`,
+            `${API_BASE_URL}/vendor/${getVendorId()}/applications/${id}/status`,
             {
                 method: "PATCH",
                 headers: {
@@ -81,7 +89,7 @@ export async function saveComment(
     try {
 
         const response = await fetch(
-            `http://localhost:3001/vendor/1/applications/${applicationId}/comments`,
+            `${API_BASE_URL}/vendor/${getVendorId()}/applications/${applicationId}/comments`,
             {
                 method: "POST",
                 headers: {
@@ -127,7 +135,7 @@ export async function saveBlockedTimeSlot(
     reason: string
 ){
     try{
-        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots`, {
+        const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues/${venueId}/blocked-timeslots`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -143,7 +151,7 @@ export async function saveBlockedTimeSlot(
 
 export async function getBlockedTimeSlots(venueId: number) {
     try{
-        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots`);
+        const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues/${venueId}/blocked-timeslots`);
 
         return await response.json();
     } catch (error) {
@@ -154,7 +162,7 @@ export async function getBlockedTimeSlots(venueId: number) {
 
 export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: number) {
     try{
-        const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}/blocked-timeslots/${blockedSlotId}`,
+        const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues/${venueId}/blocked-timeslots/${blockedSlotId}`,
             {
                 method: "DELETE",
             }
@@ -167,12 +175,12 @@ export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: numb
 }
 
 export async function getVendorVenues(){
-    const response = await fetch("http://localhost:3001/vendor/1/venues");
+    const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues`);
     return await response.json();
 }
 
 export async function createVenue(venueData: any){
-    const response = await fetch("http://localhost:3001/vendor/1/venues", {
+    const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -184,7 +192,7 @@ export async function createVenue(venueData: any){
 }
 
 export async function updateVenue(venueId: number, venueData: any){
-    const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}`, {
+    const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues/${venueId}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json"
@@ -196,7 +204,7 @@ export async function updateVenue(venueId: number, venueData: any){
 }
 
 export async function deleteVenue(venueId: number){
-    const response = await fetch(`http://localhost:3001/vendor/1/venues/${venueId}`, {
+    const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues/${venueId}`, {
         method: "DELETE",
     });
 
