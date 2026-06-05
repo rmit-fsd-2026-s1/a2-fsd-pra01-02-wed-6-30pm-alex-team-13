@@ -270,4 +270,106 @@ router.get("/:vendorID/venues", async (req, res) => {
     
 });
 
+router.post("/:vendorID/venues", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+
+        const vendor = await userRepository.findOne({
+            where: {
+                id: vendorID,
+                role: "vendor"
+            }
+        });
+
+        if(!vendor){
+            return res.status(404).json({message: "Vendor not found"});
+        }
+
+        const {
+            name,
+            Location,
+            capacity,
+            price,
+            imageUrl,
+            description,
+            suitabilityKeywords
+        } = req.body;
+
+        if(!name || !Location || !capacity || !price || !description){
+            return res.status(400).json({message: "Missing required fields"});
+        }
+
+        const venue = venueRepository.create({
+            name,
+            Location,
+            capacity,
+            price,
+            imageUrl,
+            description,
+            suitabilityKeywords,
+            vendor
+        });
+
+        await venueRepository.save(venue);
+
+        res.status(201).json(venue);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
+
+router.patch("/:vendorID/venues/:venueID", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+        const venueID = Number(req.params.venueID);
+
+        const venue = await venueRepository.findOne({
+            where: {
+                id: venueID,
+                vendor: {id: vendorID}
+            },
+            relations: { vendor: true }
+        });
+
+        if(!venue){
+            return res.status(404).json({message: "Venue not found"});
+        }
+
+        venueRepository.merge(venue, req.body);
+
+        const updatedVenue = await venueRepository.save(venue);
+
+        res.json(updatedVenue);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
+
+router.delete("/:vendorID/venues/:venueID", async (req, res) => {
+    try{
+        const vendorID = Number(req.params.vendorID);
+        const venueID = Number(req.params.venueID);
+
+        const venue = await venueRepository.findOne({
+            where: {
+                id: venueID,
+                vendor: {id: vendorID}
+            },
+            relations: { vendor: true }
+        });
+
+        if(!venue){
+            return res.status(404).json({message: "Venue not found"});
+        }
+
+        await venueRepository.remove(venue);
+
+        res.json({message: "Venue deleted"});
+    } catch(error){
+        console.log(error);
+        res.status(500).json({message: "Server error"});
+    }
+});
 export default router;
