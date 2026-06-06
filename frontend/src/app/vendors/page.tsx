@@ -129,7 +129,7 @@ export default function VendorsPage(){
         }
     }, []);
 
-    //leave afterauthentication is implemented
+    //leave until afterauthentication is implemented
     useEffect(() => {
         localStorage.setItem("role", "vendor");
     }, []);
