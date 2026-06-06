@@ -1,6 +1,7 @@
 import { Applicant, BlockedPeriod } from "@/types";
 import { seedApplicants } from "@/data/seedApplicants";
 import { seedBlockedPeriods } from "@/data/seedBlockedPeriods";
+import { getCurrentUser } from "./auth";
 
 const APPLICANT_DATA_KEY = "venue_vendors_applicants";
 const BLOCKED_DATES_KEY = "venue_vendors_blocked";
@@ -10,9 +11,9 @@ const isClient = typeof window !== "undefined";
 const API_BASE_URL = "http://localhost:3001";
 
 function getVendorId(){
-    if (typeof window === "undefined") return "1";
-
-    return localStorage.getItem("userId") || "1";
+    const user = getCurrentUser();
+    if (!user) return "1";
+    return user.id;
 }
 
 export function initialiseApplicants() {
@@ -176,7 +177,14 @@ export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: numb
 
 export async function getVendorVenues(){
     const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues`);
-    return await response.json();
+    const data = await response.json();
+
+    if(!Array.isArray(data)){
+        console.error("Returned non-array:", data);
+        return [];
+    }
+
+    return data;
 }
 
 export async function createVenue(venueData: any){

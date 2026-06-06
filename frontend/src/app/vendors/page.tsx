@@ -444,8 +444,8 @@ export default function VendorsPage(){
                         My Venues
                     </h3>  
 
-                    {venues.map((venue) =>(
-                        <div key={venue.id} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
+                    {Array.isArray(venues) && venues.map((venue, index) =>(
+                        <div key={venue.id || index} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
                             <p className="font-bold">{venue.name}</p>
                             <p>Location: {venue.Location }</p>
                             <p>Capacity: {venue.capacity}</p>

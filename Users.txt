@@ -1,0 +1,22 @@
+Vendors
+
+John Vendor (grand hall, garden state, royal ballroom)
+username= v@test.com
+password = password
+
+Jack Vendor (city garden, riverside venue)
+username = JV@mail.com
+password = Jack2019#
+
+Tom Vendor (harbour cruise, springvale, noble park)
+username = TV@mail.com
+password = Tom2019#
+
+Hirers
+
+usernsme = JH@test.com
+password = 123456
+
+Joe Hirer
+username = JH@mail.com
+password = Joe2019#
