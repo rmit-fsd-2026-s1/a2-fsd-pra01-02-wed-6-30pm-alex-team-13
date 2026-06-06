@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import vendorRoutes from "./routes/VendorRoutes";
+import authRoutes from "./routes/AuthRoutes";
 import {User} from "./entities/User";
 import {Venue} from "./entities/Venue";
 import {BookingApplication} from "./entities/BookingApplication";
@@ -11,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/vendor", vendorRoutes);
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
     res.send("Venue Vendor Backend Running");
