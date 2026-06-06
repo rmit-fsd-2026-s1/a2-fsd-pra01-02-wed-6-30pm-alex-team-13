@@ -1,66 +1,57 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function SigninPage() {
-
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
-    useEffect(() => {
-        let usersData = localStorage.getItem("users");
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
-        if (!usersData) {
-            console.log("No user databsae found, creating default account");
-            let defaultUsers = [{ email: "team13@rmit.au", password: "assignment1" }];
-            localStorage.setItem("users", JSON.stringify(defaultUsers));
-        }
-    }, []);
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("Submit button clicked. Checking credentials for:", email);
+        setError("");
 
-        if (!email.includes("@") || !email.includes(".")) {
-            alert("Please enter a proper email address.");
+        if (!isValidEmail(email)) {
+            setError("Please enter a valid email address.");
             return;
         }
 
-        if (password.length < 6 || !/\d/.test(password)) {
-            alert("Password is too weak. Make sure it has 6+ characters and a number.");
-            return;
-        }
+        try {
+            const response = await fetch("http://localhost:3001/auth/signin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-        const storedUsers = localStorage.getItem("users");
-        let userArray = [];
+            const data = await response.json();
 
-        if (storedUsers) {
-            userArray = JSON.parse(storedUsers);
-        }
-
-        let isUserAuthenticated = false;
-
-        for (let i = 0; i < userArray.length; i++) {
-            if (userArray[i].email === email && userArray[i].password === password) {
-                isUserAuthenticated = true;
-                break;
+            if (!response.ok) {
+                setError(data.message || "Invalid email or password.");
+                return;
             }
-        }
 
-        if (isUserAuthenticated) {
-            console.log("Login success! Redirecting to hirer dashboard.");
-            localStorage.setItem("currentUser", JSON.stringify({ email: email }));
-            
-            router.push("/hirer"); 
-        } else {
-            console.log("Login failed: Invalid email or password.");
-            alert("Invalid email or password. Please try again.");
+            localStorage.setItem("currentUser", JSON.stringify(data));
+            localStorage.setItem("userId", String(data.id));
+
+            if (data.role === "vendor") {
+                router.push("/vendors");
+            } else {
+                router.push("/hirer");
+            }
+        } catch (err) {
+            console.log(err);
+            setError("Something went wrong. Please try again.");
         }
     };
 
@@ -74,17 +65,17 @@ export default function SigninPage() {
                     onSubmit={handleSubmit}
                     className="max-w-md mx-auto p-8 border-2 rounded-lg bg-white text-black"
                 >
-                    <h2 className="text-2xl font-bold mb-4 text-center">Sign In</h2>
+                    <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
 
-                    <div className="bg-blue-50 p-3 mb-6 rounded text-xs text-center border border-blue-200">
-                        <p>team13@rmit.au</p>
-                        <p>assignment1</p>
-                    </div>
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+                            {error}
+                        </div>
+                    )}
 
                     <label className="block text-sm font-medium mb-1">Email Address</label>
                     <input
                         type="email"
-                        placeholder="team13@rmit.au"
                         className="w-full mb-4 p-3 border rounded focus:outline-blue-500"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -94,7 +85,6 @@ export default function SigninPage() {
                     <label className="block text-sm font-medium mb-1">Password</label>
                     <input
                         type="password"
-                        placeholder="assignment1"
                         className="w-full mb-6 p-3 border rounded focus:outline-blue-500"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -104,6 +94,10 @@ export default function SigninPage() {
                     <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded transition">
                         Login
                     </button>
+
+                    <p className="mt-4 text-center text-sm">
+                        Do not have an account? <a href="/signup" className="text-blue-700 font-medium">Sign Up</a>
+                    </p>
                 </form>
             </main>
 

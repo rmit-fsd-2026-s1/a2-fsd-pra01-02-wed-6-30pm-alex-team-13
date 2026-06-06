@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { getCurrentUser } from "@/utils/auth";
 import { Applicant, BlockedPeriod } from "@/types";
 import ApplicantCard from "@/components/ApplicantCard";
 import Panel from "@/components/Panel";
@@ -17,6 +19,17 @@ const Insights = dynamic(() => import("@/components/Insights"), {
 });
 
 export default function VendorsPage(){
+    const router = useRouter();
+
+    useEffect(() => {
+        const user = getCurrentUser();
+        if (!user) {
+            router.push("/signin");
+        } else if (user.role !== "vendor") {
+            router.push("/hirer");
+        }
+    }, []);
+
     const [applicants, setApplicants] = useState<Applicant[]>([]);
     const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
     const [comment, setComment] = useState("");
@@ -187,7 +200,7 @@ export default function VendorsPage(){
             alert("Failed to approve application.");
             return;
         }
-       
+        
 
         const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
                 ...applicant,
@@ -216,7 +229,7 @@ export default function VendorsPage(){
             alert("Failed to reject application.");
             return;
         }
-       
+        
 
         const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
                 ...applicant,
@@ -589,7 +602,7 @@ export default function VendorsPage(){
                 
                 </div>
 
-                 <Insights applicants={applicants} /> 
+                <Insights applicants={applicants} /> 
             </main>
 
             <Footer />

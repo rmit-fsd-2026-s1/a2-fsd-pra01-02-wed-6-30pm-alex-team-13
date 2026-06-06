@@ -28,6 +28,9 @@ export class User {
     @Column({ nullable: true })
     phone!: string;
 
+    @Column({ type: "text", nullable: true })
+    avatar!: string;
+
     @Column({ type: "datetime", default: () => "GETDATE()" })
     dateJoined!: Date;
 
