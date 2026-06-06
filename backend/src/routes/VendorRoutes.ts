@@ -5,6 +5,7 @@ import {User} from '../entities/User';
 import {VendorComment} from '../entities/VendorComment';
 import {BlockedTimeSlot} from '../entities/BlockedTimeSlot';
 import {Venue} from '../entities/Venue';
+import {isValidApplicationStatus, isValidBlockedTimeSlot, isValidVenueInput} from '../utils/validation';
 
 const router = Router();
 
@@ -55,7 +56,7 @@ router.patch("/:vendorID/applications/:id/status", async (req, res) => {
         const applicationID = Number(req.params.id);
         const { status } = req.body;
 
-        if(!["Pending", "Approved", "Rejected"].includes(status)){
+        if(!isValidApplicationStatus(status)){
             return res.status(400).json({message: "Invalid status"});
         }
 
@@ -137,19 +138,10 @@ router.post("/:vendorID/venues/:venueID/blocked-timeslots", async (req, res) => 
 
         const { startDateTime, endDateTime, reason } = req.body;
 
-        if(!startDateTime || !endDateTime){
-            return res.status(400).json({message: "Start and end date time are required"});
+        if(!isValidBlockedTimeSlot(startDateTime, endDateTime, reason || "")){
+            return res.status(400).json({message: "Invalid blocked time slot data"});
         }
 
-        if(
-            new Date(endDateTime) <= new Date(startDateTime)
-        ){
-            return res.status(400).json({message: "End date time must be after start date time"});
-        }
-
-        if(!reason.trim()){
-            return res.status(400).json({message: "Reason for blocking is required"});
-        }
 
         const venue = await venueRepository.findOne({
             where:{
@@ -295,8 +287,8 @@ router.post("/:vendorID/venues", async (req, res) => {
             suitabilityKeywords
         } = req.body;
 
-        if(!name || !Location || !capacity || !price || !description){
-            return res.status(400).json({message: "Missing required fields"});
+        if(!isValidVenueInput({name, Location, capacity, price, description})){
+            return res.status(400).json({message: "Invalid venue data"});
         }
 
         const venue = venueRepository.create({
@@ -334,6 +326,18 @@ router.patch("/:vendorID/venues/:venueID", async (req, res) => {
 
         if(!venue){
             return res.status(404).json({message: "Venue not found"});
+        }
+
+        const updatedVenueData = {
+            name: req.body.name ?? venue.name,
+            Location: req.body.Location ?? venue.Location,
+            capacity: req.body.capacity ?? venue.capacity,
+            price: req.body.price ?? venue.price,
+            description: req.body.description ?? venue.description
+        };
+
+        if(!isValidVenueInput(updatedVenueData)){
+            return res.status(400).json({message: "Invalid venue update data"});
         }
 
         venueRepository.merge(venue, req.body);

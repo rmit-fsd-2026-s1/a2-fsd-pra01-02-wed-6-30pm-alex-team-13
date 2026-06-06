@@ -143,9 +143,9 @@ export default function VendorsPage(){
     }, []);
 
     //leave until afterauthentication is implemented
-    useEffect(() => {
+    /*useEffect(() => {
         localStorage.setItem("role", "vendor");
-    }, []);
+    }, []);*/
 
     const handleSelectedApplicant = (applicant : Applicant) => {
         setSelectedApplicant(applicant);
