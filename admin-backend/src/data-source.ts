@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-import {DataSource, DataSourceOptions} from "typeorm";
+import {DataSource} from "typeorm";
 import { User } from "./entities/User";
 import { Venue } from "./entities/Venue";
 import { BookingApplication } from "./entities/BookingApplication";
@@ -12,32 +12,21 @@ import { VendorComment } from "./entities/VendorComment";
 import { HirerDocument } from "./entities/HirerDocument";
 import { HiringHistory } from "./entities/HiringHistory";
 
-const isTesting = process.env.NODE_ENV === "test";
-
-const entities = [User, Venue, BookingApplication, BlockedTimeSlot, VendorComment, HirerDocument, HiringHistory];
-
-const sqliteConfig: DataSourceOptions = {
-    type: "better-sqlite3",
-    database: ":memory:",
-    synchronize: true,
-    logging: false,
-    entities,
-};
-
-const mssqlConfig: DataSourceOptions = {
+export const AppDataSource = new DataSource({
     type: "mssql",
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+
     synchronize: true,
-    logging: true,
-    entities,
+    logging: false,
+
+    entities: [User, Venue, BookingApplication, BlockedTimeSlot, VendorComment, HirerDocument, HiringHistory],
+
     options: {
         encrypt: true,
         trustServerCertificate: true
     }
-};
-
-export const AppDataSource = new DataSource(isTesting ? sqliteConfig : mssqlConfig);
+});

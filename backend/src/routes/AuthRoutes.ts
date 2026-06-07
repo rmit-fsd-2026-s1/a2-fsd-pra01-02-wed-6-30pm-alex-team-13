@@ -1,4 +1,5 @@
 import {Router} from 'express';
+import bcrypt from 'bcryptjs';
 import {AppDataSource} from '../data-source';
 import {User} from '../entities/User';
 
@@ -42,11 +43,13 @@ router.post("/signup", async (req, res) => {
             return res.status(400).json({message: "Email already registered"});
         }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const user = userRepository.create({
             firstName,
             lastName,
             email,
-            password,
+            password: hashedPassword,
             role
         });
 
@@ -79,7 +82,9 @@ router.post("/signin", async (req, res) => {
             return res.status(401).json({message: "Invalid email or password"});
         }
 
-        if(user.password !== password){
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if(!passwordMatch){
             return res.status(401).json({message: "Invalid email or password"});
         }
 

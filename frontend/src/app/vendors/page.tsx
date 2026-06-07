@@ -142,10 +142,10 @@ export default function VendorsPage(){
         }
     }, []);
 
-    //leave until afterauthentication is implemented
-    /*useEffect(() => {
+    //leave afterauthentication is implemented
+    useEffect(() => {
         localStorage.setItem("role", "vendor");
-    }, []);*/
+    }, []);
 
     const handleSelectedApplicant = (applicant : Applicant) => {
         setSelectedApplicant(applicant);
@@ -200,7 +200,7 @@ export default function VendorsPage(){
             alert("Failed to approve application.");
             return;
         }
-        
+       
 
         const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
                 ...applicant,
@@ -229,7 +229,7 @@ export default function VendorsPage(){
             alert("Failed to reject application.");
             return;
         }
-        
+       
 
         const updatedApplicants: Applicant[] = applicants.map((applicant) => applicant.id === selectedApplicant.id ? {
                 ...applicant,
@@ -443,8 +443,8 @@ export default function VendorsPage(){
                         My Venues
                     </h3>  
 
-                    {Array.isArray(venues) && venues.map((venue, index) =>(
-                        <div key={venue.id || index} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
+                    {venues.map((venue) =>(
+                        <div key={venue.id} className="rounded-lg bg-white p-4 mb-3 text-slate-800">
                             <p className="font-bold">{venue.name}</p>
                             <p>Location: {venue.Location }</p>
                             <p>Capacity: {venue.capacity}</p>
@@ -630,7 +630,7 @@ export default function VendorsPage(){
                 
                 </div>
 
-                <Insights applicants={applicants} /> 
+                 <Insights applicants={applicants} /> 
             </main>
 
             <Footer />

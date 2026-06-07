@@ -112,7 +112,7 @@ export default function ProfilePage() {
                         </div>
 
                         {message && (
-                            <div className="mt-6 bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded text-sm text-center">
+                            <div className={`mt-6 px-4 py-3 rounded text-sm text-center border ${message === "Profile updated." ? "bg-green-100 border-green-300 text-green-700" : "bg-red-100 border-red-300 text-red-700"}`}>
                                 {message}
                             </div>
                         )}

@@ -5,155 +5,131 @@ import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useRouter } from "next/navigation";
-import { seedVenues } from "@/data/seedVenues";
-import { Applicant } from "@/types";
-
-import { getApplicants, saveApplicants, initialiseStorage } from "@/utils/api";
+import { getCurrentUser } from "@/utils/auth";
+import { getAllVenues, getMyApplications, createBooking } from "@/utils/api";
 
 export default function HirerPage() {
     const router = useRouter();
 
-    
+    const [hirerId, setHirerId] = useState("");
+    const [venues, setVenues] = useState<any[]>([]);
+    const [myApplications, setMyApplications] = useState<any[]>([]);
 
-    const [name, setName] = useState("");
-    const [phone, setPhone] = useState("");
     const [eventName, setEventName] = useState("");
-    const [eventType, setEventType] = useState("")
     const [guests, setGuests] = useState("");
     const [date, setDate] = useState("");
-    const [duration, setDuration] = useState("");
-    const [isBusiness, setIsBusiness] = useState(false);
-    const [abn, setAbn] = useState("");
-    const [rankedVenues, setRankedVenues] = useState<string[]>([]);
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
+    const [selectedVenue, setSelectedVenue] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState("default");
-    const [hasLicense, setHasLicense] = useState(false);
-    const [hasInsurance, setHasInsurance] = useState(false);
-    const [hasBusReg, setHasBusReg] = useState(false);
-    const [pastApplicants, setPastApplicants] = useState<Applicant[]>([]);
 
     useEffect(() => {
-    const loadApplicants = async () => {
-        const data = await getApplicants();
+        const user = getCurrentUser();
+        if (!user) {
+            router.push("/signin");
+            return;
+        }
+        if (user.role !== "hirer") {
+            router.push("/vendors");
+            return;
+        }
 
-        console.log("Loaded existing applicants:", data.length);
+        setHirerId(String(user.id));
 
-        setPastApplicants(data);
-    };
+        const loadData = async () => {
+            const venueData = await getAllVenues();
+            setVenues(venueData);
 
-    loadApplicants();
-}, []);
-    const filteredVenues = seedVenues.filter((item) => {
-    if (!searchQuery) return true;
+            const appData = await getMyApplications(String(user.id));
+            setMyApplications(appData);
+        };
 
-    const q = searchQuery.toLowerCase();
+        loadData();
+    }, []);
 
-    return (
-        item.name.toLowerCase().includes(q) ||
-        item.location.toLowerCase().includes(q) ||
-        item.capacity.toString().includes(q) ||
-        item.suitability?.toLowerCase().includes(q)
-    );
-});
+    const filteredVenues = venues.filter((item) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+            item.name.toLowerCase().includes(q) ||
+            item.Location.toLowerCase().includes(q) ||
+            item.capacity.toString().includes(q) ||
+            item.suitabilityKeywords?.toLowerCase().includes(q)
+        );
+    });
 
     if (sortOption === "price") {
         filteredVenues.sort((a, b) => a.price - b.price);
     } else if (sortOption === "capacity") {
         filteredVenues.sort((a, b) => a.capacity - b.capacity);
-    } else if (sortOption === "rating") {
-        filteredVenues.sort((a, b) => b.rating - a.rating);
     }
 
     const toggleSort = () => {
         if (sortOption === "default") setSortOption("price");
         else if (sortOption === "price") setSortOption("capacity");
-        else if (sortOption === "capacity") setSortOption("rating");
         else setSortOption("default");
     };
 
-    const calculateScore = () => {
-        const docs = [hasLicense, hasInsurance, (isBusiness ? hasBusReg : true)];
-        const count = docs.filter(Boolean).length;
-        const score = (count / 3) * 5;
-        return Math.round(score * 10) / 10;
-    };
-    
     const resetForm = () => {
-        setName("");
-        setPhone("");
         setEventName("");
-        setEventType("");
         setGuests("");
-        setRankedVenues([]);
-        setAbn("");
-        setIsBusiness(false);
-        setHasLicense(false);
-        setHasInsurance(false);
-        setHasBusReg(false);
+        setDate("");
+        setStartTime("");
+        setEndTime("");
+        setSelectedVenue(null);
     };
 
-    const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
+        if (!eventName) {
+            alert("Please enter an event name.");
+            return;
+        }
 
-    if (Number(guests) <= 0) {
-        alert("You need at least 1 guest to book a venue!");
-        return;
-    }
+        if (Number(guests) <= 0) {
+            alert("You need at least 1 guest to book a venue!");
+            return;
+        }
 
-    if (!name || !phone || !eventName || !eventType) {
-        alert("Please fill in all the contact and event detials.");
-        return;
-    }
+        if (!date || !startTime || !endTime) {
+            alert("Please enter the date, start time and end time.");
+            return;
+        }
 
-    if (phone.length < 10) {
-        alert("Please enter a valid 10-digit phone number.");
-        return;
-    }
+        if (endTime <= startTime) {
+            alert("End time must be after start time.");
+            return;
+        }
 
-    if (rankedVenues.length === 0) {
-        alert("Please select and rank at least one venue first!");
-        return;
-    }
-    console.log("submitting form for venue:", rankedVenues[0]);
+        if (!selectedVenue) {
+            alert("Please select a venue first!");
+            return;
+        }
 
-    const calcScore = calculateScore();
+        const bookingData = {
+            eventName,
+            guestCount: Number(guests),
+            eventDate: date,
+            startTime,
+            endTime,
+            venueId: selectedVenue,
+        };
 
-    const newEntry: Applicant = {
-        id: Date.now().toString(),
-        name,
-        email: "team13@rmit.au",
-        phone,
-        eventName,
-        eventType,
-        guests: Number(guests),
-        eventDate: date,
-        durationHours: Number(duration),
-        venueOfChoice: rankedVenues[0], 
-        suitability: "Medium",
-        reputationScore: calcScore, 
-        compliantDocs: {
-            License: hasLicense,
-            liabilityInsuarance: hasInsurance,
-            businessRegistration: isBusiness ? hasBusReg : false,
-        },
-        hireHistory: [],
-        comments: `Ranking Order: ${rankedVenues.join(" > ")}. ${abn ? "ABN: " + abn : ""}`,
-        selected: false,
-        approved: false,
-        status: "Pending",
-        timesChosen: 0,
+        const saved = await createBooking(hirerId, bookingData);
+
+        if (!saved || saved.message) {
+            alert(saved?.message || "Failed to submit application.");
+            return;
+        }
+
+        alert("Application submitted!");
+        resetForm();
+
+        const appData = await getMyApplications(hirerId);
+        setMyApplications(appData);
     };
-
-    const updatedList = [...pastApplicants, newEntry];
-    saveApplicants(updatedList);
-    setPastApplicants(updatedList);
-
-    alert(`Success! Application for ${rankedVenues[0]} was submitted with a ${calcScore} star credibility rating.`);
-    resetForm();
-    router.push("/vendors");
-    };
-
 
     return (
         <>
@@ -180,51 +156,49 @@ export default function HirerPage() {
                         </button>
                     </div>
 
+                    {venues.filter((v) => v.featured).length > 0 && (
+                        <div className="mb-10">
+                            <h3 className="text-xl font-bold mb-4 text-slate-900">Featured Venues</h3>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {venues.filter((v) => v.featured).map((v) => (
+                                    <div
+                                        key={v.id}
+                                        onClick={() => setSelectedVenue(selectedVenue === v.id ? null : v.id)}
+                                        className={"p-4 rounded-xl border-2 transition cursor-pointer " + (selectedVenue === v.id ? "border-blue-600 bg-blue-50" : "border-yellow-400 bg-yellow-50")}
+                                    >
+                                        <img src={v.imageUrl} alt={v.name} className="w-full h-44 object-cover rounded-lg mb-4" />
+                                        <h4 className="font-bold text-lg text-slate-900">{v.name}</h4>
+                                        <p className="text-sm text-slate-500 mb-2">{v.Location}</p>
+                                        <span className="text-xs font-bold text-yellow-700">FEATURED</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                         {filteredVenues.length === 0 ? (
-                            <p className="col-span-full text-center py-10 text-slate-500">No venues match your search.</p>
+                            <p className="col-span-full text-center py-10 text-slate-500">No venues found.</p>
                         ) : (
                             filteredVenues.map((v) => (
                                 <div
-                                key={v.id}
-                                onClick={() => {
-                                    setRankedVenues(prev => 
-                                        prev.includes(v.name) 
-                                            ? prev.filter(n => n !== v.name)
-                                            : [...prev, v.name]
-                                    );
-                                }}
-                                className={"p-4 rounded-xl border-2 transition cursor-pointer " + (rankedVenues.includes(v.name) ? "border-blue-600 bg-blue-50" : "border-transparent bg-white")}
-                            >
-                                {rankedVenues.includes(v.name) && (
-                                    <div className="mb-2 text-xs font-bold text-blue-600">
-                                        RANKD #{rankedVenues.indexOf(v.name) + 1}
-                                    </div>
-                                )}
-                                <img src={v.image} alt={v.name} className="w-full h-44 object-cover rounded-lg mb-4" />
+                                    key={v.id}
+                                    onClick={() => setSelectedVenue(selectedVenue === v.id ? null : v.id)}
+                                    className={"p-4 rounded-xl border-2 transition cursor-pointer " + (selectedVenue === v.id ? "border-blue-600 bg-blue-50" : "border-transparent bg-white")}
+                                >
+                                    <img src={v.imageUrl} alt={v.name} className="w-full h-44 object-cover rounded-lg mb-4" />
                                     <h4 className="font-bold text-lg text-slate-900">{v.name}</h4>
-                                    <p className="text-sm text-slate-500 mb-4">{v.location}</p>
-                                    
-                                    <div className="mt-3 flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <span className="material-icons text-blue-600 text-base">people</span>
-                                        <span className="font-medium">{v.capacity}</span>
+                                    <p className="text-sm text-slate-500 mb-4">{v.Location}</p>
+
+                                    <div className="mt-3 flex items-center justify-between text-gray-700">
+                                        <span className="font-medium">Capacity: {v.capacity}</span>
+                                        <span className="font-semibold">${v.price}</span>
                                     </div>
 
-                                    <div className="flex items-center gap-1 text-gray-900 font-semibold">
-                                        <span className="material-icons text-green-600 text-base">attach_money</span>
-                                        {v.price}
-                                        <p className="text-sm flex items-center gap-1 text-yellow-600">
-                                            <span className="material-icons text-base">star</span>
-                                            {v.rating}
-                                        </p>
-                                    </div>
-                                </div>
-                                    
                                     <button className={"mt-4 w-full py-2 rounded-md font-semibold text-sm transition " + (
-                                        rankedVenues.includes(v.name) ? "bg-green-600 text-white" : "bg-blue-600 text-white"
+                                        selectedVenue === v.id ? "bg-green-600 text-white" : "bg-blue-600 text-white"
                                     )}>
-                                        {rankedVenues.includes(v.name) ? `RANKED #${rankedVenues.indexOf(v.name) + 1}` : "SELECT & RANK"}
+                                        {selectedVenue === v.id ? "SELECTED" : "SELECT VENUE"}
                                     </button>
                                 </div>
                             ))
@@ -233,64 +207,20 @@ export default function HirerPage() {
 
                     <form onSubmit={handleFormSubmit} className="bg-white p-8 rounded-xl border border-slate-200">
                         <h3 className="text-xl font-bold mb-6 text-slate-800 border-b pb-2">Event Application Form</h3>
-                        
-                        {rankedVenues.length > 0 && (
-                            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-sm font-bold text-blue-800 mb-1">Ranked Preferences</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {rankedVenues.map((vName, i) => (
-                                        <span key={i} className="bg-white px-2 py-1 rounded border text-xs text-blue-700 font-medium">
-                                            #{i + 1}: {vName}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            <input placeholder="Your Full Name" className="p-3 border rounded text-black" value={name} onChange={(e) => setName(e.target.value)} />
-                            <input placeholder="Contact Phone" className="p-3 border rounded text-black" value={phone} onChange={(e) => setPhone(e.target.value)} />
                             <input placeholder="Event Name" className="p-3 border rounded text-black" value={eventName} onChange={(e) => setEventName(e.target.value)} />
-                            <input placeholder="Event Type (e.g. Wedding, Party)" className="p-3 border rounded text-black" value={eventType} onChange={(e) => setEventType(e.target.value)} />
                             <input type="number" placeholder="Number of Guests" className="p-3 border rounded text-black" value={guests} onChange={(e) => setGuests(e.target.value)} />
                             <input type="date" className="p-3 border rounded text-black" value={date} onChange={(e) => setDate(e.target.value)} />
-                            <div className="md:col-span-2 flex items-center gap-2 p-2 bg-slate-50 rounded border">
-                                <input type="checkbox" id="businessTick" 
-                                    checked={isBusiness} onChange={() => setIsBusiness(!isBusiness)} />
-                                <label htmlFor="businessTick" className="text-sm font-medium text-slate-700 cursor-pointer">
-                                    Applying on behalf of a business/organization?
-                                </label>
+                            <div></div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700">Start Time</label>
+                                <input type="time" className="w-full p-3 border rounded text-black" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                             </div>
-
-                            {isBusiness && (
-                                <div className="md:col-span-2">
-                                    <input 
-                                        placeholder="Enter ABN Number" 
-                                        className="w-full p-3 border rounded text-black border-blue-200" 
-                                        value={abn} 
-                                        onChange={(e) => setAbn(e.target.value)} 
-                                    />
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2 space-y-3 p-4 bg-slate-50 rounded border">
-                                        <p className="text-sm font-bold text-slate-700 underline decoration-blue-500">Compliance Verification</p>
-                                        <div className="flex items-center gap-2">
-                                            <input type="checkbox" id="license" checked={hasLicense} onChange={() => setHasLicense(!hasLicense)} />
-                                            <label htmlFor="license" className="text-sm text-slate-700">I confirm I have a valid Driver's License</label>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <input type="checkbox" id="insurance" checked={hasInsurance} onChange={() => setHasInsurance(!hasInsurance)} />
-                                            <label htmlFor="insurance" className="text-sm text-slate-700">I confirm I have valid Public Liability Insurance</label>
-                                        </div>
-                                        {isBusiness && (
-                                            <div className="flex items-center gap-2">
-                                                <input type="checkbox" id="busReg" checked={hasBusReg} onChange={() => setHasBusReg(!hasBusReg)} />
-                                                <label htmlFor="busReg" className="text-sm text-slate-700">Business Registration is active</label>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                </div>
-                            )}
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700">End Time</label>
+                                <input type="time" className="w-full p-3 border rounded text-black" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                            </div>
                         </div>
 
                         <button className="mt-8 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-lg transition uppercase tracking-wider">
@@ -300,15 +230,15 @@ export default function HirerPage() {
 
                     <div className="mt-12">
                         <h3 className="text-xl font-bold text-slate-900 mb-4">My Past Applications</h3>
-                        {pastApplicants.length === 0 ? (
+                        {myApplications.length === 0 ? (
                             <p className="text-slate-500 italic">You haven't submitted any applications yet.</p>
                         ) : (
                             <div className="space-y-3">
-                                {pastApplicants.map((a, idx) => (
-                                    <div key={idx} className="p-4 bg-white border rounded-lg flex justify-between items-center">
+                                {myApplications.map((a) => (
+                                    <div key={a.id} className="p-4 bg-white border rounded-lg flex justify-between items-center">
                                         <div>
-                                            <p className="font-bold text-slate-800">{a.venueOfChoice}</p>
-                                            <p className="text-sm text-slate-500">{a.eventName} • {a.eventDate}</p>
+                                            <p className="font-bold text-slate-800">{a.venue?.name}</p>
+                                            <p className="text-sm text-slate-500">{a.eventName} - {a.eventDate}</p>
                                         </div>
                                         <span className="text-xs font-bold px-3 py-1 bg-slate-100 rounded-full text-slate-600">
                                             {a.status.toUpperCase()}

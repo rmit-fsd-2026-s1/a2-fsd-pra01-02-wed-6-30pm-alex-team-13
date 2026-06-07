@@ -1,7 +1,6 @@
 import { Applicant, BlockedPeriod } from "@/types";
 import { seedApplicants } from "@/data/seedApplicants";
 import { seedBlockedPeriods } from "@/data/seedBlockedPeriods";
-import { getCurrentUser } from "./auth";
 
 const APPLICANT_DATA_KEY = "venue_vendors_applicants";
 const BLOCKED_DATES_KEY = "venue_vendors_blocked";
@@ -11,9 +10,9 @@ const isClient = typeof window !== "undefined";
 const API_BASE_URL = "http://localhost:3001";
 
 function getVendorId(){
-    const user = getCurrentUser();
-    if (!user) return "1";
-    return user.id;
+    if (typeof window === "undefined") return "1";
+
+    return localStorage.getItem("userId") || "1";
 }
 
 export function initialiseApplicants() {
@@ -177,14 +176,7 @@ export async function deleteBlockedTimeSlot(venueId: number, blockedSlotId: numb
 
 export async function getVendorVenues(){
     const response = await fetch(`${API_BASE_URL}/vendor/${getVendorId()}/venues`);
-    const data = await response.json();
-
-    if(!Array.isArray(data)){
-        console.error("Returned non-array:", data);
-        return [];
-    }
-
-    return data;
+    return await response.json();
 }
 
 export async function createVenue(venueData: any){
@@ -217,4 +209,39 @@ export async function deleteVenue(venueId: number){
     });
 
     return await response.json();
+}
+export async function getAllVenues(){
+    try{
+        const response = await fetch(`${API_BASE_URL}/hirer/venues`);
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+}
+
+export async function getMyApplications(hirerId: string){
+    try{
+        const response = await fetch(`${API_BASE_URL}/hirer/${hirerId}/applications`);
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+}
+
+export async function createBooking(hirerId: string, bookingData: any){
+    try{
+        const response = await fetch(`${API_BASE_URL}/hirer/${hirerId}/applications`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(bookingData),
+        });
+        return await response.json();
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
 }
