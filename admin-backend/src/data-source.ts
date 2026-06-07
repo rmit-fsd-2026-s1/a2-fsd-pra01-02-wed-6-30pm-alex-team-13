@@ -14,7 +14,7 @@ import { HiringHistory } from "./entities/HiringHistory";
 
 export const AppDataSource = new DataSource({
     type: "mssql",
-    host: "dipto-database.cn2ems8y2mfe.ap-southeast-2.rds.amazonaws.com",
+     host: "dipto-database.cn2ems8y2mfe.ap-southeast-2.rds.amazonaws.com",
     port: 1433,
     username: "s4075255",
     password: "nipuna2019#",

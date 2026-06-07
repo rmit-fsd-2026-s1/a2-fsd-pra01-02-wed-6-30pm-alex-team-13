@@ -26,7 +26,7 @@ const sqliteConfig: DataSourceOptions = {
 
 const mssqlConfig: DataSourceOptions = {
     type: "mssql",
-    host: "dipto-database.cn2ems8y2mfe.ap-southeast-2.rds.amazonaws.com",
+     host: "dipto-database.cn2ems8y2mfe.ap-southeast-2.rds.amazonaws.com",
     port: 1433,
     username: "s4075255",
     password: "nipuna2019#",
