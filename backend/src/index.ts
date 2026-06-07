@@ -5,6 +5,9 @@ import {Venue} from "./entities/Venue";
 import {BookingApplication} from "./entities/BookingApplication";
 import {AppDataSource} from "./data-source";
 
+// All test usernames and passwords are listed in Users.txt.
+// h@test.com (hirer) and v@test.com (vendor) were the main accounts used for testing.
+
 AppDataSource.initialize().then(async () => {
     console.log("Database Connected");
     const userRepository = AppDataSource.getRepository(User);
