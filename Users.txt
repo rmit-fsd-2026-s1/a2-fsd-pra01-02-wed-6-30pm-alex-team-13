@@ -1,5 +1,6 @@
 Vendors
 
+#this was used for testing
 John Vendor (grand hall, garden state, royal ballroom)
 username= v@test.com
 password = password
@@ -14,6 +15,7 @@ password = Tom2019#
 
 Hirers
 
+#this was used for testing
 usernsme = JH@test.com
 password = 123456
 
