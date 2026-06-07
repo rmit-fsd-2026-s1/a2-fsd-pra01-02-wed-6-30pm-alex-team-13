@@ -249,8 +249,7 @@ export default function VendorsPage(){
         alert("Application rejected.");
     };
 
-    const handleBlockedVenue = async () => {
-        if(!selectedApplicant) return;
+    const handleBlockedVenue = async (venue: any) => {
 
 
         // Validation rule1:
@@ -276,7 +275,7 @@ export default function VendorsPage(){
         }
         
         const hasOverLap = blockedPeriods.some((period) => {
-            if(period.venueName !== selectedApplicant.venueOfChoice) return false;
+            if(period.venueName !== venue.name) return false;
 
             const newStart = new Date(blockStart).getTime();
             const newEnd = new Date(blockEnd).getTime();
@@ -292,20 +291,20 @@ export default function VendorsPage(){
         }
 
         const savedBlockedSlot = await saveBlockedTimeSlot(
-            1, blockStart, blockEnd, blockReason
+            venue.id, blockStart, blockEnd, blockReason
         );
 
-        if(!savedBlockedSlot){
+        if(!savedBlockedSlot || !savedBlockedSlot.id){
             alert("Failed to block the venue.");
             return;
         }
         
         const newBlockedPeriod: BlockedPeriod = {
-            id: crypto.randomUUID(),
-            venueName: selectedApplicant.venueOfChoice,
-            startDateTime: blockStart,
-            endDateTime: blockEnd,
-            reason: blockReason || "Venue Unavailable at the moment",
+            id: String(savedBlockedSlot.id),
+            venueName: venue.name,
+            startDateTime: savedBlockedSlot.startDateTime,
+            endDateTime: savedBlockedSlot.endDateTime,
+            reason: savedBlockedSlot.reason || "Venue Unavailable at the moment",
         };
         const updatedBlockedPeriods = [...blockedPeriods, newBlockedPeriod];
 
@@ -464,7 +463,43 @@ export default function VendorsPage(){
                             >
                                 Delete
                             </button>
-                        </div>
+                            </div>
+                            <div className="mt-5 border-t border-slate-200 pt-4">
+                                <h4 className="font-semibold text-slate-900">
+                                    Block This Venue
+                                </h4>
+
+                                <div className="mt-3 grid gap-3">
+                                    <input
+                                        type="datetime-local"
+                                        value={blockStart}
+                                        onChange={(e) => setBlockStart(e.target.value)}
+                                        className="rounded-md border border-slate-300 p-2"
+                                    />
+
+                                    <input
+                                        type="datetime-local"
+                                        value={blockEnd}
+                                        onChange={(e) => setBlockEnd(e.target.value)}
+                                        className="rounded-md border border-slate-300 p-2"
+                                    />
+
+                                    <input
+                                        type="text"
+                                        value={blockReason}
+                                        onChange={(e) => setBlockReason(e.target.value)}
+                                        placeholder="Reason"
+                                        className="rounded-md border border-slate-300 p-2"
+                                    />
+
+                                    <button
+                                        onClick={() => handleBlockedVenue(venue)}
+                                        className="w-fit rounded-lg bg-slate-800 px-5 py-2 text-white hover:bg-slate-900"
+                                    >
+                                        Block Venue Period
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     ))}
 
@@ -585,13 +620,6 @@ export default function VendorsPage(){
                         onSaveComment={handleSaveComment}
                         onApprove={handleApprove}
                         onReject={handleRejectApplicant}
-                        blockStart={blockStart}
-                        setBlockStart={setBlockStart}
-                        blockEnd={blockEnd}
-                        setBlockEnd={setBlockEnd}
-                        blockReason={blockReason}
-                        setBlockReason={setBlockReason}
-                        onBlockVenue={handleBlockedVenue}
                         blockedPeriods={blockedPeriods}
                         onDeleteBlockedPeriod={handleDeleteBlockedPeriod}
                         />

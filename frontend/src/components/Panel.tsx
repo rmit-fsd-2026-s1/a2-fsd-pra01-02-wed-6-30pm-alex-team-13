@@ -2,7 +2,7 @@ import { Applicant, BlockedPeriod } from "@/types";
 
 export default function Panel({
     applicant,comment,setComment,onSaveComment,onApprove,onReject,
-    blockStart, setBlockStart, blockEnd, setBlockEnd, blockReason, setBlockReason, onBlockVenue, blockedPeriods, onDeleteBlockedPeriod,
+     blockedPeriods, onDeleteBlockedPeriod,
 }: {
     applicant: Applicant;
     comment: string;
@@ -10,13 +10,6 @@ export default function Panel({
     onSaveComment: () => void;
     onApprove: () => void;
     onReject: () => void;
-    blockStart: string;
-    setBlockStart: (value: string) => void;
-    blockEnd: string;
-    setBlockEnd: (value: string) => void;
-    blockReason: string;
-    setBlockReason: (value: string) => void;
-    onBlockVenue: () => void;
     blockedPeriods: BlockedPeriod[];
     onDeleteBlockedPeriod: (blockedPeriodId: string) => void;
 }) {
@@ -163,59 +156,7 @@ export default function Panel({
                 )}
             </div>
 
-            <div className="mt-6">
-                <h5 className="text-xl font-semibold text-slate-900">
-                    Block Venue
-                </h5>
-
-                <p className="mt-2 text-slate-700">
-                    Block the venue for a certain date and time period.
-                </p>
-
-                <div className="mt-3 grid gap-3">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-700">
-                            Start Date and Time
-                        </label>
-                        <input 
-                            type="datetime-local"
-                            value={blockStart} 
-                            onChange={(e) => setBlockStart(e.target.value)} 
-                            className="w-full rounded-md border border-slate-300 p-2 text-slate-700"
-                         />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-700">
-                            End Date and Time
-                        </label>
-                        <input 
-                            type="datetime-local"
-                            value={blockEnd} 
-                            onChange={(e) => setBlockEnd(e.target.value)} 
-                            className="w-full rounded-md border border-slate-300 p-2 text-slate-700"
-                         />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-700">
-                            Reason
-                        </label>
-                        <input 
-                            type="text"
-                            value={blockReason} 
-                            onChange={(e) => setBlockReason(e.target.value)} 
-                            placeholder="Maintainence, private event, etc..." 
-                            className="w-full rounded-md border border-slate-300 p-2 text-slate-700"
-                         />
-                    </div>
-
-                    <button
-                        onClick={onBlockVenue}
-                        className="w-fit rounded-lg bg-slate-800 px-5 py-2 text-white hover:bg-slate-900"
-                    >Block Venue Period</button>
-                </div>
-            </div>
+            
 
             <div className="mt-6">
                 <h5 className="text-xl font-semibold text-slate-900">
