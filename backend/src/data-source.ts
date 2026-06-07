@@ -26,11 +26,11 @@ const sqliteConfig: DataSourceOptions = {
 
 const mssqlConfig: DataSourceOptions = {
     type: "mssql",
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: "dipto-database.cn2ems8y2mfe.ap-southeast-2.rds.amazonaws.com",
+    port: 1433,
+    username: "s4075255",
+    password: "nipuna2019#",
+    database: "s4075255",
     synchronize: true,
     logging: true,
     entities,
