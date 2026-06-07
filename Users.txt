@@ -22,3 +22,7 @@ password = 123456
 Joe Hirer
 username = JH@mail.com
 password = Joe2019#
+
+Admin
+username = admin
+password = admin
